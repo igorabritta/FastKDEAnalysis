@@ -48,8 +48,7 @@ h=h*f;
 switch type
     case 'fix'
         for d=1:nd;
-            h = ones(1,length(data))*h;
-            Hi =h.^2;
+            H(d,d) =h{d}^2;
         end
     case 'variable'
         [hi] = hihj(h,lambda,proby,n);         % cálculo da banda variável

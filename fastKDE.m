@@ -74,7 +74,7 @@ if nd ==1
     %     if length(data)>=69998
     pdf=zeros(1,nPoint);
     for j=1:Div
-        pdf(1,(1+(nPoint/Div)*(j-1)):(nPoint/Div)*(j))=[((1/n)*sum((repmat((Hi.^(-1/2)),nPoint/Div,1).*Kn(repmat((Hi.^(-1/2)),nPoint/Div,1).*((repmat(X((1+(nPoint/Div)*(j-1)):(nPoint/Div)*(j)),length(data),1)')-repmat(data,nPoint/Div,1)))),2))'];
+        pdf(1,(1+(nPoint/Div)*(j-1)):(nPoint/Div)*(j))=(((1/n)*sum((repmat((Hi.^(-1/2)),nPoint/Div,1).*Kn(repmat((Hi.^(-1/2)),nPoint/Div,1).*((repmat(X((1+(nPoint/Div)*(j-1)):(nPoint/Div)*(j)),length(data),1)')-repmat(data,nPoint/Div,1)))),2))');
     end
     %     else
     %         pdf=[];
@@ -103,9 +103,9 @@ else
     %             pdf = pdf/V;
     %         end
     %     else
-    pdf=[];
+    pdf=zeros(nPoint,nPoint);
     for jj=1:Div
-        pdfy=[];
+        
         for kk=1:Div
             MH1= repmat((Hi(1,:).^(-1/2)),nPoint/Div,1);
             MH2= repmat((Hi(2,:).^(-1/2)),nPoint/Div,1);
@@ -114,10 +114,10 @@ else
             MX1=repmat(X(1,((1+(nPoint/Div)*(jj-1)):(nPoint/Div)*(jj))),length(data(1,:)),1)';
             MX2=repmat(X(2,((1+(nPoint/Div)*(kk-1)):(nPoint/Div)*(kk))),length(data(2,:)),1)';
             
-            pdf1=((1/n)*(MH1.*Kn(MH1.*(MX1-MD1)))*(MH2.*Kn(MH2.*(MX2-MD2)))')';
-            pdfy=[pdfy; pdf1];
+            pdf(((1+(nPoint/Div)*(jj-1)):(nPoint/Div)*(jj)),((1+(nPoint/Div)*(kk-1)):(nPoint/Div)*(kk)))=((1/n)*(MH1.*Kn(MH1.*(MX1-MD1)))*(MH2.*Kn(MH2.*(MX2-MD2)))')';
+%             pdfy=[pdfy; pdf1];
         end
-        pdf=[pdf pdfy];
+%         pdf=[pdf pdfy];
     end
     if doNorm == 1
         [V]= volume_pts(X(1,:),X(2,:),pdf,nPoint);
@@ -148,7 +148,7 @@ end
 
 
 function [hi] = hihj(h,lambda,fpi,n)
-hi=zeros(1,n);
+% hi1=zeros(length(lambda),n);
 for i=1:n
     hi(:,i)=abs((h).*(sqrt(lambda./fpi(i))));
 end

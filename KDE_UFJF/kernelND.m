@@ -20,6 +20,22 @@ fp = 0;                                 % habilita plots finais
 x = x(:);
 x={x'};                                 % comentar para kernel N-Dimensional, por isso não precisa ser cell
 nd=length(x);                           % número de dimensões
+
+%-------------------------------------------------------------------------%
+%% PreAllocation
+n=cell(1,nd); 
+h=cell(1,nd);
+yp=cell(1,nd);
+xp=cell(1,nd);
+ah=cell(1,nd);
+fp_pdf=cell(1,nd);
+fpi=cell(1,nd);
+X=cell(1,nd);
+H=zeros(nd,nd);
+KNDv=cell(1,nd);
+KNDf=cell(1,nd);
+%-------------------------------------------------------------------------%
+
 for d=1:nd;                             % loop para preencher variáveis de cada dimensão
     n{d}=length(x{d});                  % eventos em cada dimensão
     [~,stdv] = zoom_pdf2d_diff([x{d}; x{d}],'proj');
@@ -38,6 +54,7 @@ for d=1:nd;
     H(d,d) =h{d}^2;
 end
 
+Hi=cell(1,n{d});
 for i=1:n{d}
     for d=1:nd;
         Hi{i}(d,d) =hi{d}(i)^2;
@@ -49,7 +66,8 @@ x=cell2mat(x);
 X=cell2mat(X');
 n = cell2mat(n);
 
-
+Kv=zeros(nPoint(1),length(x));
+Kf=zeros(nPoint(1),length(x));
 %==========================================================================
 % Fazendo os Cálculos do KERNEL ND de banda Fixa e Variável
 %==========================================================================
@@ -90,7 +108,11 @@ else
         KNDf{i}=(1/(n(d)))*sum(Kf(:,:,i));
     end
 end
+
+
 if nd == 1
+    fv=zeros(1,nPoint(1));
+    ff=zeros(1,nPoint(1));
     for i=1:nPoint(1)
         fv(i)=KNDv{1}(i);
         ff(i)=KNDf{1}(i);
@@ -98,6 +120,8 @@ if nd == 1
 end
 
 if nd == 2
+    fv=zeros(nPoint(1),nPoint(1));
+    ff=zeros(nPoint(1),nPoint(1));
     for i=1:nPoint(1)
         for j=1:nPoint(1)
             fv(i,j)=KNDv{1}(i)*KNDv{2}(j);
@@ -107,6 +131,8 @@ if nd == 2
 end
 
 if nd==3
+    fv=zeros(nPoint(1),nPoint(1),nPoint(1));
+    ff=zeros(nPoint(1),nPoint(1),nPoint(1));
     for i=1:nPoint(1)
         for j=1:nPoint(1)
             for k=1:nPoint(1)

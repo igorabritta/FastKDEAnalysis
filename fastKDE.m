@@ -22,11 +22,18 @@ doNorm = 0;
 
 [nd,n,data]= format_data(data);
 
+%-------------------------------------------------------------------------%
+%% PreAllocation
+X=zeros(nd,nPoint); 
+h=zeros(1,nd);
+
+%-------------------------------------------------------------------------%
+
 if nd ==1
     [hist_pdf,Xedges,~] = histcounts(data,'Normalization', 'pdf','BinMethod','fd');
     xh = (Xedges(1:end-1) + Xedges(2:end))/2;
-    optN = length(hist_pdf);
-    proby=interp1(xh(find(hist_pdf~=0)),hist_pdf(find(hist_pdf~=0)),data,'linear','extrap');           %cálculo das probabilidades dos eventos de kernel
+%     optN = length(hist_pdf);
+    proby=interp1(xh(hist_pdf~=0),hist_pdf(hist_pdf~=0),data,'linear','extrap');           %cálculo das probabilidades dos eventos de kernel
     lambda=exp((length(data)^-1)*sum(log(proby(proby~=0)))); %calculo do lambda otimo pela teoria do paper
     h =((4/(nd+2))^(1/(nd+4)))*std(data)*n^(-1/(nd+4)); % cálculo do h("rule-of-thumb") ótimo pelo AMISE
     X = linspace(min(data),max(data),nPoint); %range X do kernel
@@ -34,7 +41,7 @@ else
     [hist_pdf,Xedges,Yedges,~] = histcounts2(data(1,:),data(2,:),'Normalization', 'pdf','BinMethod','fd');
     xh = (Xedges(1:end-1) + Xedges(2:end))/2;
     yh = (Yedges(1:end-1) + Yedges(2:end))/2;
-    optN = length(hist_pdf);
+%     optN = length(hist_pdf);
     proby=interp2(xh,yh,hist_pdf',data(1,:),data(2,:),'linear',min(min(hist_pdf(hist_pdf>0))));           %cálculo das probabilidades dos eventos de kernel
     lambda=exp((length(data)^-1)*sum(log(proby(proby~=0)))); %calculo do lambda otimo pela teoria do paper
     for i=1:nd
@@ -65,9 +72,9 @@ end
 if nd ==1
     %% Dimensões = 1
     %     if length(data)>=69998
-    pdf=[];
+    pdf=zeros(1,nPoint);
     for j=1:Div
-        pdf=[pdf ((1/n)*sum((repmat((Hi.^(-1/2)),nPoint/Div,1).*Kn(repmat((Hi.^(-1/2)),nPoint/Div,1).*((repmat(X((1+(nPoint/Div)*(j-1)):(nPoint/Div)*(j)),length(data),1)')-repmat(data,nPoint/Div,1)))),2))'];
+        pdf(1,(1+(nPoint/Div)*(j-1)):(nPoint/Div)*(j))=[((1/n)*sum((repmat((Hi.^(-1/2)),nPoint/Div,1).*Kn(repmat((Hi.^(-1/2)),nPoint/Div,1).*((repmat(X((1+(nPoint/Div)*(j-1)):(nPoint/Div)*(j)),length(data),1)')-repmat(data,nPoint/Div,1)))),2))'];
     end
     %     else
     %         pdf=[];
@@ -107,7 +114,7 @@ else
             MX1=repmat(X(1,((1+(nPoint/Div)*(jj-1)):(nPoint/Div)*(jj))),length(data(1,:)),1)';
             MX2=repmat(X(2,((1+(nPoint/Div)*(kk-1)):(nPoint/Div)*(kk))),length(data(2,:)),1)';
             
-            pdf1=[(1/n)*(MH1.*Kn(MH1.*(MX1-MD1)))*(MH2.*Kn(MH2.*(MX2-MD2)))']';
+            pdf1=((1/n)*(MH1.*Kn(MH1.*(MX1-MD1)))*(MH2.*Kn(MH2.*(MX2-MD2)))')';
             pdfy=[pdfy; pdf1];
         end
         pdf=[pdf pdfy];
@@ -122,6 +129,8 @@ else
     
     
 end
+
+clearvars -except X pdf
 
 end
 
@@ -139,6 +148,7 @@ end
 
 
 function [hi] = hihj(h,lambda,fpi,n)
+hi=zeros(1,n);
 for i=1:n
     hi(:,i)=abs((h).*(sqrt(lambda./fpi(i))));
 end
@@ -148,24 +158,25 @@ function [K]=Kn(u)
 K=((2*pi)^(-1/2))*exp((-(u.^2)/2)); %Gaussian
 end
 
-function [x,y] = data_normalized(x,bin)
-[yh,xh]= hist(x,bin);
-ah= area2d(xh,yh);
-x = xh;
-y=yh/ah;
-end
+% function [x,y] = data_normalized(x,bin)
+% [yh,xh]= hist(x,bin);
+% ah= area2d(xh,yh);
+% x = xh;
+% y=yh/ah;
+% end
 
 function [ area ] = area2d(x,y)
 tbin=min(diff(x));
 area=sum(abs(y))*tbin;
 end
 
-function [V]= volume_pts(x,y,z,pts);
+function [V]= volume_pts(x,y,z,pts)
 
 xgrid = min(x):range(x)/pts:max(x);
 ygrid = min(y):range(y)/pts:max(y);
 
 h = waitbar(0,'Remaking GRID points');
+zgrid=zeros(length(xgrid),1);
 for i=1:length(xgrid)
     zgrid(i,:)= interp2(x,y,z,xgrid(i),ygrid,'linear');
     waitbar(i/length(xgrid))

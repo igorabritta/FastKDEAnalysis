@@ -19,57 +19,93 @@ A = normrnd(mu,sigma,n,d);
 % A=randn(n,d);
 xgrid=linspace(min(A),max(A),m);
 
-% Not Matricial
-tic
-[x2v,p2v]=KDE_opt(A,m,f,'variable');                   % Our Implementation
-Lvtime=toc;
-tic
+%% FLAGS PLOTS
+plot.hist=0;
 
-[x2f,p2f]=KDE_opt(A,m,f,'fix');                   % Our Implementation
-Lftime=toc;
+%-------------------------------------------------------------------------%
+%% PreAllocation
+kk=100;
+Lvtime=zeros(1,kk);
+Lftime=zeros(1,kk);
+Fftime=zeros(1,kk);
+Fvtime=zeros(1,kk);
+Mtime=zeros(1,kk);
+Ktime=zeros(1,kk);
+aKtime=zeros(1,kk);
 
-tic
-[x1f,pdf1f]=fastKDE(A,m,f,div,'fix');      % Our Implementation Fast
-Fftime=toc;
+%-------------------------------------------------------------------------%
 
-tic
-[x1v,pdf1v]=fastKDE(A,m,f,div,'variable');      % Our Implementation Fast
-Fvtime=toc;
 
-tic
-[pdf2,x2] = ksdensity(A,'npoints',m);        % Matlab Implementation
-Mtime=toc;
 
-tic
-[~,pdf3,x3,~]=kde(A,m,min(A),max(A));
-Ktime=toc;
-
-tic
-[pdf4,x4]=akde1d(A,m);
-aKtime=toc;
-
-display('--------------------------------------');
-display('Our Implementation:');
-display(['KDE Fix Time: ' num2str(Lftime)]);
-display(['KDE Variable Time: ' num2str(Lvtime)]);
-display('-------');
-display(['FastKDE Fix Time: ' num2str(Fftime)]);
-display(['FastKDE Variable Time: ' num2str(Fvtime)]);
-display('--------------------------------------');
-display('Others Implementations:');
-display(['Ksdensity Time: ' num2str(Mtime)]);
-display(['KDE Time: ' num2str(Ktime)]);
-display(['aKDE Time: ' num2str(aKtime)]);
+for i=1:kk
+    % Not Matricial
+    tic
+    [x2v,p2v]=KDE_opt(A,m,f,'variable');                   % Our Implementation
+    Lvtime(i)=toc;
+    
+    tic
+    [x2f,p2f]=KDE_opt(A,m,f,'fix');                   % Our Implementation
+    Lftime(i)=toc;
+    
+    tic
+    [x1f,pdf1f]=fastKDE(A,m,f,div,'fix');      % Our Implementation Fast
+    Fftime(i)=toc;
+    
+    tic
+    [x1v,pdf1v]=fastKDE(A,m,f,div,'variable');      % Our Implementation Fast
+    Fvtime(i)=toc;
+    
+    tic
+    [pdf2,x2] = ksdensity(A,'npoints',m);        % Matlab Implementation
+    Mtime(i)=toc;
+    
+    tic
+    [~,pdf3,x3,~]=kde(A,m,min(A),max(A));
+    Ktime(i)=toc;
+    
+    tic
+    [pdf4,x4]=akde1d(A,m);
+    aKtime(i)=toc;
+    
+end
 
 figure
-plot(X,Y,'k','DisplayName','Analytic PDF')
+semilogy(1:kk,Lftime,'sr','DisplayName','KDEf')
 hold on
-plot(x2f{1},p2f,'sr','DisplayName','KDEf')
-plot(x2v{1},p2v,'sg','DisplayName','KDEv')
-plot(x1f,pdf1f,'*r','DisplayName','FastKDEf')
-plot(x1v,pdf1v,'*g','DisplayName','FastKDEv')
-plot(x2,pdf2,'ob','DisplayName','Ksdensity')
-plot(x3,pdf3,'om','DisplayName','KDE')
-plot(x4,pdf4,'oc','DisplayName','aKDE')
+semilogy(1:kk,Lvtime,'sg','DisplayName','KDEv')
+semilogy(1:kk,Fftime,'*r','DisplayName','FastKDEf')
+semilogy(1:kk,Fvtime,'*g','DisplayName','FastKDEv')
+semilogy(1:kk,Mtime,'ob','DisplayName','Ksdensity')
+semilogy(1:kk,Ktime,'om','DisplayName','KDE')
+semilogy(1:kk,aKtime,'oc','DisplayName','aKDE')
+xlabel('Attempts')
+ylabel('Time(seconds)')
 legend show
 axis tight
+% display('--------------------------------------');
+% display('Our Implementation:');
+% display(['KDE Fix Time: ' num2str(Lftime)]);
+% display(['KDE Variable Time: ' num2str(Lvtime)]);
+% display('-------');
+% display(['FastKDE Fix Time: ' num2str(Fftime)]);
+% display(['FastKDE Variable Time: ' num2str(Fvtime)]);
+% display('--------------------------------------');
+% display('Others Implementations:');
+% display(['Ksdensity Time: ' num2str(Mtime)]);
+% display(['KDE Time: ' num2str(Ktime)]);
+% display(['aKDE Time: ' num2str(aKtime)]);
+
+if plot.hist==1
+    figure
+    plot(X,Y,'k','DisplayName','Analytic PDF')
+    hold on
+    plot(x2f{1},p2f,'sr','DisplayName','KDEf')
+    plot(x2v{1},p2v,'sg','DisplayName','KDEv')
+    plot(x1f,pdf1f,'*r','DisplayName','FastKDEf')
+    plot(x1v,pdf1v,'*g','DisplayName','FastKDEv')
+    plot(x2,pdf2,'ob','DisplayName','Ksdensity')
+    plot(x3,pdf3,'om','DisplayName','KDE')
+    plot(x4,pdf4,'oc','DisplayName','aKDE')
+    legend show
+    axis tight
+end
